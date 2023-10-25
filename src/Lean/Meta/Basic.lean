@@ -585,6 +585,16 @@ def setMVarType (mvarId : MVarId) (type : Expr) : MetaM Unit := do
   mvarId.setType type
 
 /--
+Return `mvarId` name. Throw an exception if `mvarId` is not declared in the current metavariable context.
+-/
+def _root_.Lean.MVarId.getUserName (mvarId : MVarId) : MetaM Name :=
+  return (← mvarId.getDecl).userName
+
+@[deprecated MVarId.getUserName]
+def getMVarUserName (mvarId : MVarId) : MetaM Name :=
+  mvarId.getUserName
+
+/--
 Return true if the given metavariable is "read-only".
 That is, its `depth` is different from the current metavariable context depth.
 -/

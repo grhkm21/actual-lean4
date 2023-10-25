@@ -147,6 +147,7 @@ private def getOptRotation (stx : Syntax) : Nat :=
   let n := getOptRotation stx[1]
   setGoals <| (← getGoals).rotateRight n
 
+/-
 @[builtin_tactic Parser.Tactic.open] def evalOpen : Tactic := fun stx => do
   let `(tactic| open $decl in $tac) := stx | throwUnsupportedSyntax
   try
@@ -319,18 +320,19 @@ def forEachVar (hs : Array Syntax) (tac : MVarId → FVarId → MetaM MVarId) : 
 
 @[builtin_tactic Lean.Parser.Tactic.substVars] def evalSubstVars : Tactic := fun _ =>
   liftMetaTactic fun mvarId => return [← substVars mvarId]
+-/
 
 /--
   Searches for a metavariable `g` s.t. `tag` is its exact name.
   If none then searches for a metavariable `g` s.t. `tag` is a suffix of its name.
   If none, then it searches for a metavariable `g` s.t. `tag` is a prefix of its name. -/
 private def findTag? (mvarIds : List MVarId) (tag : Name) : TacticM (Option MVarId) := do
-  match (← mvarIds.findM? fun mvarId => return tag == (← mvarId.getDecl).userName) with
+  match (← mvarIds.findM? fun mvarId => return tag == mvarId.getUserName) with
   | some mvarId => return mvarId
   | none =>
-  match (← mvarIds.findM? fun mvarId => return tag.isSuffixOf (← mvarId.getDecl).userName) with
+  match (← mvarIds.findM? fun mvarId => return tag.isSuffixOf mvarId.getUserName) with
   | some mvarId => return mvarId
-  | none => mvarIds.findM? fun mvarId => return tag.isPrefixOf (← mvarId.getDecl).userName
+  | none => mvarIds.findM? fun mvarId => return tag.isPrefixOf mvarId.getUserName
 
 def renameInaccessibles (mvarId : MVarId) (hs : TSyntaxArray ``binderIdent) : TacticM MVarId := do
   if hs.isEmpty then
@@ -391,7 +393,7 @@ where
     | availableNames =>
       throwError "Case tag {showTagName tag} not found.\n\nAvailable tags:{commaList <| availableNames.map showTagName}"
 
-  getUserName (mv : MVarId) := do return (← mv.getDecl).userName
+  getUserName (mv : MVarId) := mv.getUserName
 
   showTagName (tagName : Name) : MessageData := m!"'{tagName}'"
 
